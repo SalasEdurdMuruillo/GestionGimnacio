@@ -11,11 +11,16 @@ import java.sql.SQLException;
 public class ConexionBD {
 
     private static ConexionBD instance;
-    private final String url = "jdbc:mariadb://localhost:3307/Gimnacio";
+    private final String url = "jdbc:mysql://localhost:3307/Gimnacio?useSSL=false&serverTimezone=UTC";
     private final String user = "Admin";
     private final String password = "Admin123@";
 
     private ConexionBD() {
+          try {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+    } catch (ClassNotFoundException e) {
+        throw new RuntimeException("No se encontró el driver MySQL", e);
+    }
     }
 
     public static synchronized ConexionBD getInstance() {
