@@ -60,6 +60,7 @@ public class GYM extends javax.swing.JFrame {
         txtPagos.setEnabled(false);
         txtRegistroClientes.setEnabled(false);
         txtCerrarSesion.setEnabled(false);
+        txtClaseCliente.setEnabled(false);
     }
 
     private void AjustarImag() {
