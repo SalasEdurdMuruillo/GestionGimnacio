@@ -18,7 +18,7 @@ import GimnacioUsuarios.RolUsuario;
 
 /**
  *
- * @author Luisf
+ * @author Eduard Salas Murillo
  */
 public class Entrenadores extends javax.swing.JInternalFrame {
 
