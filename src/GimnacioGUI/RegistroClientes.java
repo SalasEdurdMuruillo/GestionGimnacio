@@ -294,8 +294,6 @@ public class RegistroClientes extends javax.swing.JInternalFrame {
                     "Información",
                     JOptionPane.INFORMATION_MESSAGE);
 
-            limpiarFormulario();
-
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     ex.getMessage(),

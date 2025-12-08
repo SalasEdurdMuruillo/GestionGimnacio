@@ -10,6 +10,7 @@ import GimnacioPago.RepositorioPagos;
 import GimnacioPago.ServicioPago;
 import GimnacioUsuarios.RepositorioUsuarios;
 import GimnacioUsuarios.ServicioAutenticacion;
+import GimnacioClienteClase.RepositorioClienteClase;
 
 /**
  *
@@ -24,17 +25,23 @@ public class FachadaGimnasio {
     private final ServicioAutenticacion servicioAutenticacion;
     private final RepositorioUsuarios repoUsuarios;
 
+    private final RepositorioClienteClase repoClienteClase;
+
     public FachadaGimnasio(FabricaRepositorios fabrica) {
         RepositorioClientes repoClientes = fabrica.crearRepositorioClientes();
         RepositorioEntrenadores repoEntrenadores = fabrica.crearRepositorioEntrenadores();
         RepositorioClases repoClases = fabrica.crearRepositorioClases();
         RepositorioPagos repoPagos = fabrica.crearRepositorioPagos();
 
+        this.repoClienteClase = fabrica.crearRepositorioClienteClase();
+
         RepositorioUsuarios repoUsuariosInstance = fabrica.crearRepositorioUsuarios();
 
         this.servicioCliente = new ServicioCliente(repoClientes);
         this.servicioEntrenador = new ServicioEntrenador(repoEntrenadores);
-        this.servicioClase = new ServicioClase(repoClases);
+
+        this.servicioClase = new ServicioClase(repoClases, repoClienteClase);
+
         this.servicioPago = new ServicioPago(repoPagos);
         this.servicioAutenticacion = new ServicioAutenticacion(repoUsuariosInstance);
         this.repoUsuarios = repoUsuariosInstance;

@@ -6,6 +6,9 @@ import GimnacioClase.RepositorioClasesMariaDB;
 import GimnacioCliente.RepositorioClientes;
 import GimnacioCliente.RepositorioClientesMemoria;
 import GimnacioCliente.RepositorioClientesMariaDB;
+import GimnacioClienteClase.RepositorioClienteClase;
+import GimnacioClienteClase.RepositorioClienteClaseMariaDB;
+import GimnacioClienteClase.RepositorioClienteClaseMemoria;
 import GimnacioEntrenador.RepositorioEntrenadores;
 import GimnacioEntrenador.RepositorioEntrenadoresMemoria;
 import GimnacioEntrenador.RepositorioEntrenadoresMariaDB;
@@ -72,4 +75,16 @@ public class FabricaRepositorios {
                 new RepositorioUsuariosMemoria();
         };
     }
+
+    public RepositorioClienteClase crearRepositorioClienteClase() {
+        return switch (tipo) {
+            case MYSQL ->
+                new RepositorioClienteClaseMariaDB();
+            case MEMORIA ->
+                new RepositorioClienteClaseMemoria();
+            default ->
+                throw new IllegalArgumentException("Tipo de repositorio no soportado para ClienteClase: " + tipo);
+        };
+    }
+
 }

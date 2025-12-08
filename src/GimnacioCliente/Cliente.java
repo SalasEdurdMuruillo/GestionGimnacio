@@ -2,11 +2,11 @@ package GimnacioCliente;
 
 import GimnacioMembresia.TipoMembresia;
 import java.time.LocalDate;
+
 /**
  *
  * @author Luisf
  */
-
 public class Cliente {
 
     private String cedula;
@@ -15,22 +15,32 @@ public class Cliente {
     private LocalDate fecha;
     private TipoMembresia tipoMembresia;
     private boolean activo;
+    private boolean notificacionVencimientoMostrada;
 
     public Cliente() {
     }
 
     public Cliente(String cedula, String nombreCompleto, String telefono,
-            LocalDate fecha, TipoMembresia tipoMembresia, boolean activo) {
+            LocalDate fecha, TipoMembresia tipoMembresia, boolean activo, boolean notificacionVencimientoMostrada) {
         this.cedula = cedula;
         this.nombreCompleto = nombreCompleto;
         this.telefono = telefono;
         this.fecha = fecha;
         this.tipoMembresia = tipoMembresia;
         this.activo = activo;
+        this.notificacionVencimientoMostrada = notificacionVencimientoMostrada;
+    }
+
+    public boolean isNotificacionVencimientoMostrada() {
+        return notificacionVencimientoMostrada;
     }
 
     public String getCedula() {
         return cedula;
+    }
+
+    public void setNotificacionVencimientoMostrada(boolean notificacionVencimientoMostrada) {
+        this.notificacionVencimientoMostrada = notificacionVencimientoMostrada;
     }
 
     public void setCedula(String cedula) {

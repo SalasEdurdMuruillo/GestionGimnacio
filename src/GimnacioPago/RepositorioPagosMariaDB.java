@@ -34,14 +34,15 @@ public class RepositorioPagosMariaDB implements RepositorioPagos {
     @Override
     public void crear(Pago pago) {
         String sql = "INSERT INTO Pagos (CedulaCliente, Monto, Fecha) VALUES (?, ?, ?)";
+
         try (Connection cn = conexionBD.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
 
             ps.setString(1, pago.getCedulaCliente());
+
             ps.setDouble(2, pago.getMonto());
 
             LocalDate fecha = pago.getFecha();
             if (fecha == null) {
-
                 ps.setTimestamp(3, new java.sql.Timestamp(System.currentTimeMillis()));
             } else {
                 ps.setTimestamp(3, java.sql.Timestamp.valueOf(fecha.atStartOfDay()));
@@ -49,7 +50,7 @@ public class RepositorioPagosMariaDB implements RepositorioPagos {
 
             ps.executeUpdate();
         } catch (SQLException ex) {
-            throw new RuntimeException("Error al crear pago", ex);
+            throw new RuntimeException("Error al crear pago: " + ex.getMessage(), ex);
         }
     }
 

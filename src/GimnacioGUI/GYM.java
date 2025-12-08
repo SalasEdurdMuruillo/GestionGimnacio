@@ -465,7 +465,8 @@ public class GYM extends javax.swing.JFrame {
                 mensaje -> JOptionPane.showMessageDialog(this,
                         mensaje,
                         "Alerta de membresía",
-                        JOptionPane.WARNING_MESSAGE)
+                        JOptionPane.WARNING_MESSAGE),
+                facade.getServicioCliente()
         );
         hiloAlertas.start();
     }

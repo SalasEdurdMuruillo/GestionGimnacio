@@ -19,6 +19,7 @@ import java.util.List;
 import javax.swing.JFileChooser;
 import java.nio.file.Path;
 import GeneradorFacturaPDF.ReportePagosPDF;
+import GimnacioCliente.Cliente;
 
 /**
  *
@@ -76,11 +77,11 @@ public class Pagos extends javax.swing.JInternalFrame {
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Control Pagos", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Segoe UI", 1, 36), new java.awt.Color(0, 153, 153))); // NOI18N
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel4.setText("ID Pago:");
+        jLabel4.setText("Nombre Cliente:");
         jLabel4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
 
         jLabel9.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel9.setText("Cliente:");
+        jLabel9.setText("Cédula Cliente:");
         jLabel9.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
 
         jLabel10.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
@@ -112,6 +113,7 @@ public class Pagos extends javax.swing.JInternalFrame {
         jTextField1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jTextField1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 102), 2));
 
+        jTextField2.setEditable(false);
         jTextField2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jTextField2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 102), 2));
 
@@ -149,13 +151,14 @@ public class Pagos extends javax.swing.JInternalFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField2))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel9)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextField1))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jTextField2)
+                        .addGap(132, 132, 132))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel10)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -167,7 +170,7 @@ public class Pagos extends javax.swing.JInternalFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel12)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jFormattedTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 582, Short.MAX_VALUE))
+                        .addComponent(jFormattedTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 597, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel13)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -188,12 +191,12 @@ public class Pagos extends javax.swing.JInternalFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -215,7 +218,7 @@ public class Pagos extends javax.swing.JInternalFrame {
                         .addGap(18, 18, 18)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, 66, Short.MAX_VALUE)
-                            .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 66, Short.MAX_VALUE)
+                            .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jButton16, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(26, 26, 26)
@@ -263,9 +266,11 @@ public class Pagos extends javax.swing.JInternalFrame {
 
             private void cargar() {
                 try {
-                    String nombre = jTextField1.getText().trim();
 
-                    if (nombre.isEmpty()) {
+                    String cedula = jTextField1.getText().trim();
+
+                    if (cedula.isEmpty()) {
+                        jTextField2.setText("");
                         jTextField3.setText("");
                         jFormattedTextField2.setText("");
                         jTextField4.setText("");
@@ -275,10 +280,11 @@ public class Pagos extends javax.swing.JInternalFrame {
                     var lista = facade.getServicioCliente().listarTodos();
 
                     var encontrado = lista.stream()
-                            .filter(c -> c.getNombreCompleto().equalsIgnoreCase(nombre))
+                            .filter(c -> c.getCedula().equalsIgnoreCase(cedula))
                             .findFirst();
 
                     if (encontrado.isEmpty()) {
+                        jTextField2.setText("Cliente no encontrado");
                         jTextField3.setText("");
                         jFormattedTextField2.setText("");
                         jTextField4.setText("");
@@ -287,6 +293,7 @@ public class Pagos extends javax.swing.JInternalFrame {
 
                     var cliente = encontrado.get();
 
+                    jTextField2.setText(cliente.getNombreCompleto());
                     double subtotal;
 
                     switch (cliente.getTipoMembresia()) {
@@ -320,7 +327,7 @@ public class Pagos extends javax.swing.JInternalFrame {
 
             if (cedulaCliente.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
-                        "Debe digitar la cédula del cliente.",
+                        "Debe digitar la Cédula del cliente.",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -337,8 +344,16 @@ public class Pagos extends javax.swing.JInternalFrame {
                 return;
             }
 
-            int id = generarNuevoId();
-            jTextField2.setText(String.valueOf(id));
+            Optional<Cliente> clienteOpt = facade.getServicioCliente().buscarPorCedula(cedulaCliente);
+
+            if (clienteOpt.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Cliente con cédula " + cedulaCliente + " no encontrado.",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Cliente clienteActual = clienteOpt.get();
 
             double subtotal = Double.parseDouble(textoSubtotal);
 
@@ -372,16 +387,19 @@ public class Pagos extends javax.swing.JInternalFrame {
             jTextField4.setText(String.format("%.0f", total));
 
             Pago pago = new Pago();
-            pago.setId(id);
             pago.setCedulaCliente(cedulaCliente);
             pago.setMonto(total);
             pago.setFecha(fecha);
-
             facade.getServicioPago().registrar(pago);
 
+            clienteActual.setFecha(fecha.plusMonths(1));
+
+            clienteActual.setNotificacionVencimientoMostrada(false);
+
+            facade.getServicioCliente().guardar(clienteActual);
+
             JOptionPane.showMessageDialog(this,
-                    "Pago registrado correctamente.\n"
-                    + "ID: " + id + "\n"
+                    "Pago registrado y membresía renovada correctamente.\n"
                     + "Subtotal: " + subtotal + "\n"
                     + "Impuesto: " + impuesto + "\n"
                     + "Total: " + total,
@@ -398,17 +416,6 @@ public class Pagos extends javax.swing.JInternalFrame {
         }
     }
 
-    private int generarNuevoId() {
-        List<Pago> pagos = facade.getServicioPago().listarTodos();
-        int maxId = 0;
-        for (Pago p : pagos) {
-            if (p.getId() > maxId) {
-                maxId = p.getId();
-            }
-        }
-        return maxId + 1;
-    }
-
     private void listarPagos() {
         try {
             List<Pago> pagos = facade.getServicioPago().listarTodos();
@@ -420,61 +427,25 @@ public class Pagos extends javax.swing.JInternalFrame {
                 return;
             }
 
-            String textoId = jTextField2.getText().trim();
-
-            if (!textoId.isEmpty()) {
-
-                int id = Integer.parseInt(textoId);
-                Optional<Pago> pagoEncontrado = pagos.stream()
-                        .filter(p -> p.getId() == id)
-                        .findFirst();
-
-                if (pagoEncontrado.isPresent()) {
-                    Pago p = pagoEncontrado.get();
-
-                    jTextField1.setText(p.getCedulaCliente());
-                    jFormattedTextField1.setText(p.getFecha().format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy")));
-                    double subtotal = p.getMonto() / 1.13;
-                    double impuesto = subtotal * 0.13;
-                    jTextField3.setText(String.format("%.0f", subtotal));
-                    jFormattedTextField2.setText(String.format("%.0f", impuesto));
-                    jTextField4.setText(String.format("%.0f", p.getMonto()));
-
-                    JOptionPane.showMessageDialog(this,
-                            "Pago cargado correctamente.",
-                            "Información", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(this,
-                            "No se encontró un pago con ID " + id,
-                            "Información", JOptionPane.INFORMATION_MESSAGE);
-                }
-
-            } else {
-                StringBuilder sb = new StringBuilder();
-                for (Pago p : pagos) {
-                    sb.append("ID: ").append(p.getId())
-                            .append(" | Cliente: ").append(p.getCedulaCliente())
-                            .append(" | Fecha: ").append(p.getFecha())
-                            .append(" | Monto: ").append(p.getMonto())
-                            .append("\n");
-                }
-
-                JOptionPane.showMessageDialog(this,
-                        sb.toString(),
-                        "Pagos registrados",
-                        JOptionPane.INFORMATION_MESSAGE);
+            StringBuilder sb = new StringBuilder();
+            for (Pago p : pagos) {
+                sb.append("ID: ").append(p.getId())
+                        .append(" | Cliente (Cédula): ").append(p.getCedulaCliente())
+                        .append(" | Fecha: ").append(p.getFecha().format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy")))
+                        .append(" | Monto: ").append(String.format("%.2f", p.getMonto()))
+                        .append("\n");
             }
 
-        } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this,
-                    "El ID debe ser numérico.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
+                    sb.toString(),
+                    "Pagos registrados",
+                    JOptionPane.INFORMATION_MESSAGE);
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
                     "Error al listar los pagos: " + e.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
-
     }
 
     private void exportarPagosTxt() {

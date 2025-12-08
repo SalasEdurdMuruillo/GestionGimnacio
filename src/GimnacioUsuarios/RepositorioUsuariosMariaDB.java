@@ -9,65 +9,37 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import java.util.List;
+
+import java.util.List;
+
+import java.util.ArrayList;
+
 /**
  *
  * @author Luisf
  */
-
 public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
 
     private final ConexionBD conexionBD = ConexionBD.getInstance();
 
     private RolUsuario mapearRol(String nombreRol) {
         if (nombreRol == null) {
-            return RolUsuario.RECEPCIONISTA;
+            return RolUsuario.ADMINISTRADOR;
         }
         try {
             return RolUsuario.valueOf(nombreRol.toUpperCase());
         } catch (IllegalArgumentException ex) {
-            return RolUsuario.RECEPCIONISTA;
+            return RolUsuario.ADMINISTRADOR;
         }
     }
 
     private String rolToNombre(RolUsuario rol) {
         if (rol == null) {
-            return "RECEPCIONISTA";
+            return "ADMINISTRADOR";
         }
         return rol.name();
-    }
-
-    private Long obtenerIdRol(RolUsuario rol, Connection cn) throws SQLException {
-        String nombreRol = rolToNombre(rol);
-        String select = "SELECT Id_Rol FROM RolUsuario WHERE Nombre = ?";
-        try (PreparedStatement ps = cn.prepareStatement(select)) {
-            ps.setString(1, nombreRol);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getLong("Id_Rol");
-                }
-            }
-        }
-
-        String insert = "INSERT INTO RolUsuario (Nombre) VALUES (?)";
-        try (PreparedStatement ps = cn.prepareStatement(insert, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, nombreRol);
-            ps.executeUpdate();
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return rs.getLong(1);
-                }
-            }
-        }
-
-        try (PreparedStatement ps = cn.prepareStatement(select)) {
-            ps.setString(1, nombreRol);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getLong("Id_Rol");
-                }
-            }
-        }
-        throw new SQLException("No se pudo obtener ni crear el rol de usuario");
     }
 
     private Usuario mapear(ResultSet rs) throws SQLException {
@@ -75,6 +47,7 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
         u.setId(rs.getLong("Id"));
         u.setNombreUsuario(rs.getString("NombreUsuario"));
         u.setContrasenia(rs.getString("Contra"));
+
         String nombreRol = rs.getString("Nombre");
         u.setRolUsuario(mapearRol(nombreRol));
         return u;
@@ -82,11 +55,13 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
 
     @Override
     public void crear(Usuario usuario) {
-        String sql = "INSERT INTO Usuarios (NombreUsuario, Contra, Id_Rol, CedulaEntrenador) "
-                + "VALUES (?, ?, ?, ?)";
+        Optional<Usuario> existente = buscarPorNombreUsuario(usuario.getNombreUsuario());
+
+        String sql = "INSERT INTO Usuarios (NombreUsuario, Contra, RolUsuario) "
+                + "VALUES (?, ?, ?)";
         try (Connection cn = conexionBD.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
 
-            Long idRol = obtenerIdRol(usuario.getRolUsuario(), cn);
+            String nombreRol = rolToNombre(usuario.getRolUsuario());
 
             ps.setString(1, usuario.getNombreUsuario());
 
@@ -95,9 +70,8 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
                 hash = PasswordUtils.hash(usuario.getContrasenia());
             }
             ps.setString(2, hash);
-            ps.setLong(3, idRol);
 
-            ps.setString(4, null);
+            ps.setString(3, nombreRol);
 
             ps.executeUpdate();
         } catch (SQLException ex) {
@@ -109,7 +83,7 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
     public Optional<Usuario> buscarPorId(Long id) {
         String sql = "SELECT u.Id, u.NombreUsuario, u.Contra, r.Nombre "
                 + "FROM Usuarios u "
-                + "JOIN RolUsuario r ON u.Id_Rol = r.Id_Rol "
+                + "JOIN RolUsuario r ON u.RolUsuario = r.RolUsuario "
                 + "WHERE u.Id = ?";
         try (Connection cn = conexionBD.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
 
@@ -130,25 +104,25 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
         List<Usuario> res = new ArrayList<>();
         String sql = "SELECT u.Id, u.NombreUsuario, u.Contra, r.Nombre "
                 + "FROM Usuarios u "
-                + "JOIN RolUsuario r ON u.Id_Rol = r.Id_Rol";
+                + "JOIN RolUsuario r ON u.RolUsuario = r.RolUsuario";
         try (Connection cn = conexionBD.getConnection(); PreparedStatement ps = cn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 res.add(mapear(rs));
             }
         } catch (SQLException ex) {
-            throw new RuntimeException("Error al listar usuarios", ex);
+            throw new RuntimeException("", ex);
         }
         return res;
     }
 
     @Override
     public void actualizar(Usuario usuario) {
-        String sql = "UPDATE Usuarios SET NombreUsuario = ?, Contra = ?, Id_Rol = ? "
+        String sql = "UPDATE Usuarios SET NombreUsuario = ?, Contra = ?, RolUsuario = ? "
                 + "WHERE Id = ?";
         try (Connection cn = conexionBD.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
 
-            Long idRol = obtenerIdRol(usuario.getRolUsuario(), cn);
+            String nombreRol = rolToNombre(usuario.getRolUsuario());
 
             ps.setString(1, usuario.getNombreUsuario());
             String hash = usuario.getContrasenia();
@@ -156,12 +130,13 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
                 hash = PasswordUtils.hash(usuario.getContrasenia());
             }
             ps.setString(2, hash);
-            ps.setLong(3, idRol);
+
+            ps.setString(3, nombreRol);
             ps.setLong(4, usuario.getId());
 
             ps.executeUpdate();
         } catch (SQLException ex) {
-            throw new RuntimeException("Error al actualizar usuario", ex);
+            throw new RuntimeException("", ex);
         }
     }
 
@@ -173,7 +148,7 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
             ps.setLong(1, id);
             ps.executeUpdate();
         } catch (SQLException ex) {
-            throw new RuntimeException("Error al eliminar usuario", ex);
+            throw new RuntimeException("", ex);
         }
     }
 
@@ -183,7 +158,7 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
         String f = "%" + filtro + "%";
         String sql = "SELECT u.Id, u.NombreUsuario, u.Contra, r.Nombre "
                 + "FROM Usuarios u "
-                + "JOIN RolUsuario r ON u.Id_Rol = r.Id_Rol "
+                + "JOIN RolUsuario r ON u.RolUsuario = r.RolUsuario "
                 + "WHERE u.NombreUsuario LIKE ?";
         try (Connection cn = conexionBD.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
 
@@ -194,7 +169,7 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
                 }
             }
         } catch (SQLException ex) {
-            throw new RuntimeException("Error al buscar usuarios por filtro", ex);
+            throw new RuntimeException("", ex);
         }
         return res;
     }
@@ -203,7 +178,7 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
     public Optional<Usuario> buscarPorNombreUsuario(String nombreUsuario) {
         String sql = "SELECT u.Id, u.NombreUsuario, u.Contra, r.Nombre "
                 + "FROM Usuarios u "
-                + "JOIN RolUsuario r ON u.Id_Rol = r.Id_Rol "
+                + "JOIN RolUsuario r ON u.RolUsuario = r.RolUsuario "
                 + "WHERE u.NombreUsuario = ?";
         try (Connection cn = conexionBD.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
 
@@ -214,7 +189,7 @@ public class RepositorioUsuariosMariaDB implements RepositorioUsuarios {
                 }
             }
         } catch (SQLException ex) {
-            throw new RuntimeException("Error al buscar usuario por nombre de usuario", ex);
+            throw new RuntimeException("", ex);
         }
         return Optional.empty();
     }

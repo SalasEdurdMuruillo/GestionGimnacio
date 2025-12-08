@@ -11,11 +11,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 /**
  *
  * @author Luisf
  */
-
 public class RepositorioClientesMariaDB implements RepositorioClientes {
 
     private final ConexionBD conexionBD = ConexionBD.getInstance();
@@ -63,18 +63,20 @@ public class RepositorioClientesMariaDB implements RepositorioClientes {
         }
 
         c.setActivo(rs.getBoolean("Activo"));
+        c.setNotificacionVencimientoMostrada(rs.getBoolean("NotificacionMostrada"));
         return c;
     }
 
     @Override
     public void crear(Cliente entidad) {
         String sql = "INSERT INTO Cliente "
-                + "(Cedula, Nombre, Telefono, Fecha, IdTipoMembresia, Activo) "
-                + "VALUES (?, ?, ?, ?, ?, ?)";
+                + "(Cedula, Nombre, Telefono, Fecha, IdTipoMembresia, Activo,NotificacionMostrada) "
+                + "VALUES (?, ?, ?, ?, ?, ?,?)";
         try (Connection cn = conexionBD.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
 
             ps.setString(1, entidad.getCedula());
             ps.setString(2, entidad.getNombreCompleto());
+
             ps.setString(3, entidad.getTelefono());
 
             LocalDate fecha = entidad.getFecha();
@@ -85,10 +87,13 @@ public class RepositorioClientesMariaDB implements RepositorioClientes {
 
             ps.setInt(5, mapearIdTipoMembresia(entidad.getTipoMembresia()));
             ps.setBoolean(6, entidad.isActivo());
+            ps.setBoolean(7, entidad.isNotificacionVencimientoMostrada());
 
             ps.executeUpdate();
         } catch (SQLException ex) {
-            throw new RuntimeException("Error al crear cliente", ex);
+
+            System.err.println("SQL ERROR AL CREAR CLIENTE: " + ex.getMessage());
+            throw new RuntimeException("Error al crear cliente: " + ex.getMessage(), ex);
         }
     }
 
@@ -112,7 +117,9 @@ public class RepositorioClientesMariaDB implements RepositorioClientes {
     @Override
     public List<Cliente> buscarTodos() {
         List<Cliente> res = new ArrayList<>();
-        String sql = "SELECT * FROM Cliente";
+
+        String sql = "SELECT Cedula, Nombre, Telefono, Fecha, IdTipoMembresia, Activo, NotificacionMostrada FROM Cliente";
+
         try (Connection cn = conexionBD.getConnection(); PreparedStatement ps = cn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
@@ -127,7 +134,7 @@ public class RepositorioClientesMariaDB implements RepositorioClientes {
     @Override
     public void actualizar(Cliente entidad) {
         String sql = "UPDATE Cliente SET "
-                + "Nombre = ?, Telefono = ?, Fecha = ?, IdTipoMembresia = ?, Activo = ? "
+                + "Nombre = ?, Telefono = ?, Fecha = ?, IdTipoMembresia = ?, Activo = ?, NotificacionMostrada = ? "
                 + "WHERE Cedula = ?";
         try (Connection cn = conexionBD.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
 
@@ -142,7 +149,8 @@ public class RepositorioClientesMariaDB implements RepositorioClientes {
 
             ps.setInt(4, mapearIdTipoMembresia(entidad.getTipoMembresia()));
             ps.setBoolean(5, entidad.isActivo());
-            ps.setString(6, entidad.getCedula());
+            ps.setBoolean(6, entidad.isNotificacionVencimientoMostrada());
+            ps.setString(7, entidad.getCedula());
 
             ps.executeUpdate();
         } catch (SQLException ex) {

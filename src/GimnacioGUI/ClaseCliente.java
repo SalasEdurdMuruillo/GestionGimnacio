@@ -9,10 +9,12 @@ import GimnacioCliente.Cliente;
 import GimnacioInfraestructura.FachadaGimnasio;
 import GimnacioInfraestructura.FabricaRepositorios;
 import GimnacioInfraestructura.TipoRepositorio;
+import GimnacioClienteClase.ClienteClase;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 
@@ -32,27 +34,10 @@ public class ClaseCliente extends javax.swing.JInternalFrame {
 
     private static class Asignacion {
 
-        private final long id;
-        private final String cedulaCliente;
-        private final String codigoClase;
-
-        public Asignacion(long id, String cedulaCliente, String codigoClase) {
-            this.id = id;
-            this.cedulaCliente = cedulaCliente;
-            this.codigoClase = codigoClase;
-        }
-
-        public long getId() {
-            return id;
-        }
-
-        public String getCedulaCliente() {
-            return cedulaCliente;
-        }
-
-        public String getCodigoClase() {
-            return codigoClase;
-        }
+        private FachadaGimnasio facade;
+        private List<Cliente> clientes;
+        private List<ClaseGimnasio> clases;
+        private DefaultListModel<String> modeloListaClasesCliente;
     }
 
     public ClaseCliente() {
@@ -206,7 +191,7 @@ public class ClaseCliente extends javax.swing.JInternalFrame {
                                         .addComponent(ID)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(txtIdAsignacion, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 327, Short.MAX_VALUE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 494, Short.MAX_VALUE)
                                         .addComponent(btnBuscarAsignacion)))))
                         .addGap(12, 12, 12)))
                 .addContainerGap())
@@ -228,14 +213,14 @@ public class ClaseCliente extends javax.swing.JInternalFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(asignarclase)
-                .addContainerGap(50, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -341,64 +326,79 @@ public class ClaseCliente extends javax.swing.JInternalFrame {
         Cliente cliente = obtenerClienteSeleccionado();
         ClaseGimnasio clase = obtenerClaseSeleccionada();
 
-        if (cliente == null) {
+        if (cliente == null || clase == null) {
             JOptionPane.showMessageDialog(this,
-                    "Debe seleccionar un cliente.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (clase == null) {
-            JOptionPane.showMessageDialog(this,
-                    "Debe seleccionar una clase.",
+                    "Debe seleccionar un cliente y una clase.",
                     "Validación",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String cedula = cliente.getCedula();
-        List<ClaseGimnasio> clasesCliente = asignaciones.computeIfAbsent(cedula, c -> new ArrayList<>());
+        int codigoClase = Integer.parseInt(clase.getCodigo());
+        ClienteClase nuevaAsignacion = new ClienteClase();
+        nuevaAsignacion.setCedulaCliente(cedula);
+        nuevaAsignacion.setCodigoClase(codigoClase);
 
-        boolean yaTiene = clasesCliente.stream()
-                .anyMatch(cl -> cl.getCodigo().equalsIgnoreCase(clase.getCodigo()));
+        try {
 
-        if (yaTiene) {
-            JOptionPane.showMessageDialog(this,
-                    "Este cliente ya tiene asignada esa clase.",
-                    "Información",
-                    JOptionPane.INFORMATION_MESSAGE);
-            return;
+            long idGenerado = facade.getServicioClase().asignarClaseACliente(nuevaAsignacion);
+
+            if (idGenerado > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Clase asignada correctamente.\nID Asignación: " + idGenerado,
+                        "Éxito",
+                        JOptionPane.INFORMATION_MESSAGE);
+                txtIdAsignacion.setText(String.valueOf(idGenerado));
+                actualizarListaClasesCliente();
+            } else {
+
+                JOptionPane.showMessageDialog(this,
+                        "La clase ya estaba asignada o la asignación falló.",
+                        "Información",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (RuntimeException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("ya tiene asignada")) {
+                JOptionPane.showMessageDialog(this,
+                        ex.getMessage(),
+                        "Información",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else {
+
+                JOptionPane.showMessageDialog(this,
+                        "Error al intentar asignar la clase: " + ex.getMessage(),
+                        "Error de Persistencia",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
-        clasesCliente.add(clase);
-        long idGenerado = contadorIdAsignacion++;
-        Asignacion asignacion = new Asignacion(idGenerado, cedula, clase.getCodigo());
-        asignacionesPorId.put(idGenerado, asignacion);
-        txtIdAsignacion.setText(String.valueOf(idGenerado));
-
-        JOptionPane.showMessageDialog(this,
-                "Clase asignada correctamente.\nID Asignación: " + idGenerado,
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-
-        actualizarListaClasesCliente();
     }
 
     private void actualizarListaClasesCliente() {
         modeloListaClasesCliente.clear();
         Cliente cliente = obtenerClienteSeleccionado();
+
         if (cliente == null) {
             return;
         }
 
-        List<ClaseGimnasio> clasesCliente = asignaciones.get(cliente.getCedula());
-        if (clasesCliente == null || clasesCliente.isEmpty()) {
-            return;
-        }
+        try {
 
-        for (ClaseGimnasio cl : clasesCliente) {
-            String texto = cl.getCodigo() + " - " + cl.getNombre() + " (" + cl.getHorario() + ")";
-            modeloListaClasesCliente.addElement(texto);
+            List<ClaseGimnasio> clasesCliente = facade.getServicioClase().listarClasesAsignadasPorCliente(cliente.getCedula());
+
+            if (clasesCliente == null || clasesCliente.isEmpty()) {
+                return;
+            }
+
+            for (ClaseGimnasio cl : clasesCliente) {
+                String texto = cl.getCodigo() + " - " + cl.getNombre() + " (" + cl.getHorario() + ")";
+                modeloListaClasesCliente.addElement(texto);
+            }
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Error al cargar clases del cliente: " + ex.getMessage(),
+                    "Error de Persistencia",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -442,18 +442,32 @@ public class ClaseCliente extends javax.swing.JInternalFrame {
             return;
         }
 
-        Asignacion asignacion = asignacionesPorId.get(id);
-        if (asignacion == null) {
+        try {
+
+            Optional<ClienteClase> asignacionOpt = facade.getServicioClase().buscarAsignacionPorId(id);
+
+            if (!asignacionOpt.isPresent()) {
+                JOptionPane.showMessageDialog(this,
+                        "No se encontró ninguna asignación con ese ID.",
+                        "Sin resultados",
+                        JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            ClienteClase asignacion = asignacionOpt.get();
+
+            seleccionarClientePorCedula(asignacion.getCedulaCliente());
+            seleccionarClasePorCodigo(String.valueOf(asignacion.getCodigoClase()));
+
+            actualizarDetalle();
+            actualizarListaClasesCliente();
+
+        } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this,
-                    "No se encontró ninguna asignación con ese ID.",
-                    "Sin resultados",
-                    JOptionPane.INFORMATION_MESSAGE);
-            return;
+                    "Error al buscar la asignación: " + ex.getMessage(),
+                    "Error de Persistencia",
+                    JOptionPane.ERROR_MESSAGE);
         }
-        seleccionarClientePorCedula(asignacion.getCedulaCliente());
-        seleccionarClasePorCodigo(asignacion.getCodigoClase());
-        actualizarDetalle();
-        actualizarListaClasesCliente();
     }
 
     private void seleccionarClientePorCedula(String cedula) {

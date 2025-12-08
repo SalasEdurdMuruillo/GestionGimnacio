@@ -209,49 +209,41 @@ public class Usuarios extends javax.swing.JInternalFrame {
         String contraseniaPlano = jFormattedTextField1.getText().trim();
         String rolTexto = (String) jComboBox1.getSelectedItem();
 
-        if (nombreUsuario.isEmpty() || contraseniaPlano.isEmpty()
-                || rolTexto == null || rolTexto.isBlank()) {
-            JOptionPane.showMessageDialog(this,
-                    "Usuario, contraseña y rol son obligatorios.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
         RolUsuario rol;
         try {
             rol = RolUsuario.valueOf(rolTexto);
         } catch (IllegalArgumentException ex) {
+
+            return;
+        }
+
+        if (repositorioUsuarios.buscarPorNombreUsuario(nombreUsuario).isPresent()) {
             JOptionPane.showMessageDialog(this,
-                    "Rol inválido.",
-                    "Error",
+                    "El nombre de usuario '" + nombreUsuario + "' ya existe. Por favor, cree uno nuevo.",
+                    "Error de Validación",
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        Long nuevoId = 1L;
-        List<Usuario> existentes = repositorioUsuarios.buscarTodos();
-        if (!existentes.isEmpty()) {
-            long maxId = 0L;
-            for (Usuario u : existentes) {
-                if (u.getId() != null && u.getId() > maxId) {
-                    maxId = u.getId();
-                }
-            }
-            nuevoId = maxId + 1;
-        }
-
         String hash = PasswordUtils.hash(contraseniaPlano);
 
-        UsuarioDTO dto = new UsuarioDTO(nuevoId, nombreUsuario, hash, rol);
+        UsuarioDTO dto = new UsuarioDTO(null, nombreUsuario, hash, rol);
         Usuario usuario = mapper.toEntity(dto);
 
-        repositorioUsuarios.crear(usuario);
+        try {
+            repositorioUsuarios.crear(usuario);
 
-        JOptionPane.showMessageDialog(this,
-                "Usuario creado correctamente.",
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Usuario creado correctamente.",
+                    "Éxito",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } catch (RuntimeException ex) {
+
+            JOptionPane.showMessageDialog(this,
+                    "Error al crear el usuario: " + ex.getMessage(),
+                    "Error de Base de Datos",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void listar() {
